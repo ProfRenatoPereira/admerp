@@ -6,17 +6,13 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from whitenoise import WhiteNoise
-
 app = Flask(__name__)
 app.secret_key = 'chave_secreta_pedagogica'
 app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/', prefix='static/')
-
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-
 DATABASE = 'database.db'
-
 CATALOGO_MAQUINAS = {
     'cnc_romi': {'nome': 'Centro de Usinagem CNC ROMI 5X', 'pot': 22.0, 'cons': 15.4, 'vel': '8000', 'avan': '20000', 'comp': 1000, 'diam': 500, 'mnt': 1000, 'preco': 620000.0, 'dep': 5166.66, 'venda': 124000.0, 'operador': 'Carlos Souza (Técnico CNC)', 'custo_op': 0.45, 'salario': 3100.0, 'adic': 930.0, 'vida': 120},
     'prensa_100t': {'nome': 'Prensa Hidráulica Industrial 100T', 'pot': 15.0, 'cons': 10.5, 'vel': '60', 'avan': '1200', 'comp': 800, 'diam': 800, 'mnt': 1500, 'preco': 220000.0, 'dep': 1833.33, 'venda': 44000.0, 'operador': 'Marcos Lima (Meio Oficial)', 'custo_op': 0.22, 'salario': 1850.0, 'adic': 282.40, 'vida': 120},
@@ -26,7 +22,6 @@ CATALOGO_MAQUINAS = {
     'compressor_parafuso': {'nome': 'Compressor de Ar de Parafuso', 'pot': 11.0, 'cons': 8.8, 'vel': '10 bar', 'avan': 'Contínuo', 'comp': 600, 'diam': 400, 'mnt': 600, 'preco': 35000.0, 'dep': 291.66, 'venda': 7000.0, 'operador': 'Posto de Apoio / Indireto', 'custo_op': 0.0, 'salario': 0.0, 'adic': 0.0, 'vida': 120},
     'jato_areia': {'nome': 'Jato de Areia Pressurizado', 'pot': 5.5, 'cons': 4.1, 'vel': 'N/A', 'avan': 'Manual', 'comp': 800, 'diam': 600, 'mnt': 400, 'preco': 28000.0, 'dep': 233.33, 'venda': 5600.0, 'operador': 'Auxiliar de Jateamento', 'custo_op': 0.20, 'salario': 1512.0, 'adic': 282.40, 'vida': 120}
 }
-
 CATALOGO_MATERIAIS = {
     'tub_mec': {'cod': 'TUB-MEC-ST52', 'nome': 'Tubo Mecânico de Alta Resistência ST52', 'preco': 45.50, 'dim': 'Ø 3 pol x 2000mm', 'vol': 150.0},
     'tar_aco': {'cod': 'TAR-ACO-4140', 'nome': 'Tarugo Redondo Aço Liga SAE 4140', 'preco': 28.90, 'dim': 'Ø 2 pol x 1000mm', 'vol': 300.0},
@@ -38,7 +33,6 @@ def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
-
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -59,8 +53,7 @@ def init_db():
         cursor.execute('''
             INSERT INTO investimentos_imobiliarios (turma_nome, cidade_regiao, bairro_imovel, area_imovel, taxa_selic, valor_imovel_estimado, aluguel_regional, perc_acionistas, capital_inicial_negocio)
             VALUES ('Metalúrgica Modelo S/A - Cenário Base', 'Curitiba CIC', 'CIC (Distrito Industrial)', 450.00, 11.39, 3825000.00, 13500.00, 25.0, 500000.00)
-        ''')
-        
+        ''')   
         for k, m in CATALOGO_MAQUINAS.items():
             if k in ['cnc_romi', 'prensa_100t', 'forno_tempera']:
                 minutos_mes = 44 * 4.33 * 60
@@ -70,37 +63,30 @@ def init_db():
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, 'Diurno', 'Regular', ?)
                 ''', (m['nome'], m['pot'], m['cons'], m['vel'], m['avan'], m['comp'], m['diam'], m['mnt'], m['preco'], m['dep'], m['venda'], c_mm, m['operador'], m['custo_op'], m['salario'], m['adic'], m['vida']))
         for mat in CATALOGO_MATERIAIS.values():
-            cursor.execute("INSERT INTO materiais (codigo_material, nome_material, preco_unidade, dimensoes, volume_disponivel) VALUES (?, ?, ?, ?, ?)", (mat['cod'], mat['nome'], mat['preco'], mat['dim'], mat['vol']))
-
+        cursor.execute("INSERT INTO materiais (codigo_material, nome_material, preco_unidade, dimensoes, volume_disponivel) VALUES (?, ?, ?, ?, ?)", (mat['cod'], mat['nome'], mat['preco'], mat['dim'], mat['vol']))
         cursor.execute("INSERT INTO produtos (id, codigo_produto, nome_produto, custo_total_fabricacao) VALUES (1, 'PROD-EIXO-CNC', 'Eixo de Transmissão Usinado', 115.40)")
         cursor.execute("INSERT INTO estrutura_produto (produto_id, maquina_id, material_id, tempo_processo_min, quantidade_material) VALUES (1, 1, 2, 12.0, 1.5)")
         cursor.execute("INSERT INTO formacao_precos (produto_id, imposto_municipal, imposto_estadual, imposto_federal, margem_lucro, preco_venda_final) VALUES (1, 5.0, 18.0, 9.25, 35.0, 245.50)")
         cursor.execute("INSERT INTO estoque_produtos (produto_id, quantidade_disponivel) VALUES (1, 25.0)")
         conn.commit()
     conn.close()
-
 if not os.path.exists(DATABASE):
     init_db()
-
 def calcular_caixa_disponivel(conn):
     ult_imovel = conn.execute('SELECT capital_inicial_negocio, aluguel_regional FROM investimentos_imobiliarios ORDER BY id DESC LIMIT 1').fetchone()
     if not ult_imovel: 
-        return 0.0, 0.0
-        
+        return 0.0, 0.0      
     capital_inicial = float(ult_imovel['capital_inicial_negocio'] or 0.0)
     aluguel_fixo = float(ult_imovel['aluguel_regional'] or 0.0)
-    
     investido_maquinas = conn.execute('SELECT COALESCE(SUM(preco_compra), 0) AS total FROM maquinas').fetchone()['total']
     comprado_materials = conn.execute('SELECT COALESCE(SUM(preco_unidade * volume_disponivel), 0) AS total FROM materiais').fetchone()['total']
     faturamento = conn.execute('SELECT COALESCE(SUM(fp.preco_venda_final * pv.quantidade), 0) AS total FROM pedidos_vendas pv JOIN formacao_precos fp ON pv.produto_id = fp.produto_id').fetchone()['total']
     folha_rh = conn.execute("SELECT COALESCE(SUM(salario_base + valor_adicionais), 0) AS total FROM maquinas WHERE operador_nome != 'Posto Vago - Aguardando MOD' AND operador_nome != ''").fetchone()['total']
-    
     caixa_atual = capital_inicial - float(investido_maquinas) - float(comprado_materials) + float(faturamento) - float(folha_rh) - aluguel_fixo
     return caixa_atual, capital_inicial
 @app.route('/')
 def index():
     return render_template('login.html')
-
 @app.route('/login_validar', methods=['POST'])
 def login_validar():
     user_input = request.form.get('username')
@@ -116,7 +102,6 @@ def login_validar():
     else:
         flash('Usuário ou senha inválidos!', 'danger')
         return redirect(url_for('index'))
-
 @app.route('/inicializar_simulador', methods=['POST'])
 def inicializar_simulador():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -152,7 +137,6 @@ def professor_painel():
     todas_equipes = conn.execute('SELECT id, usuario FROM usuarios').fetchall()
     conn.close()
     return render_template('professor.html', usuarios=todas_equipes)
-
 @app.route('/professor/resetar', methods=['POST'])
 def professor_resetar():
     user_aluno = request.form.get('username')
@@ -164,7 +148,6 @@ def professor_resetar():
     conn.close()
     flash(f"Mecanismo de Pânico: Senha de '{user_aluno}' alterada para '{nova_senha}'!", 'success')
     return redirect(url_for('professor_painel'))
-
 @app.route('/professor/cadastrar', methods=['POST'])
 def professor_cadastrar():
     novo_user = request.form.get('novo_user').strip().lower().replace(" ", "")
@@ -179,12 +162,10 @@ def professor_cadastrar():
         flash("Erro: Esse nome de equipe já existe!", 'danger')
     conn.close()
     return redirect(url_for('professor_painel'))
-
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('index'))
-
 @app.route('/estrutura')
 def estrutura():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -193,7 +174,6 @@ def estrutura():
     caixa, total = calcular_caixa_disponivel(conn)
     conn.close()
     return render_template('estrutura.html', taxa_atual=11.39, registros=registros, caixa_disponivel=caixa, capital_inicial=total)
-
 @app.route('/salvar_estrutura', methods=['POST'])
 def salvar_estrutura():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -219,7 +199,6 @@ def alterar_estrutura(id):
     conn.commit()
     conn.close()
     return redirect(url_for('estrutura'))
-
 @app.route('/deletar_estrutura/<int:id>', methods=['POST'])
 def deletar_estrutura(id):
     if not session.get('logado'): return redirect(url_for('index'))
@@ -239,9 +218,7 @@ def maquinas():
     conn.close()
     base = ult['aluguel_regional'] if ult else 0
     minutos_padrao_mes = 44 * 4.33 * 60
-    return render_template('maquinas.html', maquinas=m_dados, custo_minuto_estrutural=base/minutos_padrao_mes if base > 0 else 0, caixa_disponivel=caixa, capital_inicial=total)
-
-@app.route('/salvar_maquina', methods=['POST'])
+    return render_template('maquinas.html', maquinas=m_dados, custo_minuto_estrutural=base/minutos_padrao_mes if base > 0 else 0, caixa_disponivel=caixa, capital_inicial=tota@app.route('/salvar_maquina', methods=['POST'])
 def salvar_maquina():
     if not session.get('logado'): return redirect(url_for('index'))
     conn = get_db_connection()
@@ -262,7 +239,6 @@ def alterar_maquina(id):
     conn.commit()
     conn.close()
     return redirect(url_for('maquinas'))
-
 @app.route('/deletar_maquina/<int:id>', methods=['POST'])
 def deletar_maquina(id):
     if not session.get('logado'): return redirect(url_for('index'))
@@ -271,7 +247,6 @@ def deletar_maquina(id):
     conn.commit()
     conn.close()
     return redirect(url_for('maquinas'))
-
 @app.route('/rh')
 def rh():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -280,7 +255,6 @@ def rh():
     caixa, total = calcular_caixa_disponivel(conn)
     conn.close()
     return render_template('rh.html', colaboradores=colaboradores, caixa_disponivel=caixa, capital_inicial=total)
-
 @app.route('/salvar_colaborador', methods=['POST'])
 def salvar_colaborador():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -326,7 +300,6 @@ def imprimir_holerite(id, tipo):
     valor_liquido = total_proventos - total_descontos
     dados_holerite = {"tipo_recibo": titulo_recibo, "nome": col['operador_nome'], "cargo": f"CBO {col['id']} - Ativo", "principal_nome": provento_principal_nome, "principal_valor": provento_principal_valor, "adicionais": adicionais, "horas_extras": horas_extras_acumuladas, "total_proventos": total_proventos, "inss": inss, "irrf": irrf, "vt": vale_transporte, "total_descontos": total_descontos, "liquido": valor_liquido}
     return render_template('holerite.html', h=dados_holerite)
-
 @app.route('/orcamentos')
 def orcamentos():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -354,7 +327,6 @@ def salvar_orcamento_calculado():
     except sqlite3.IntegrityError: flash('Erro no processamento comercial.', 'danger')
     conn.close()
     return redirect(url_for('vendas'))
-
 @app.route('/requisicoes')
 def requisicoes():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -363,7 +335,6 @@ def requisicoes():
     caixa, total = calcular_caixa_disponivel(conn)
     conn.close()
     return render_template('requisicoes.html', requisicoes=reqs, caixa_disponivel=caixa, capital_inicial=total)
-
 @app.route('/compras')
 def compras():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -372,7 +343,6 @@ def compras():
     caixa, total = calcular_caixa_disponivel(conn)
     conn.close()
     return render_template('compras.html', requisicoes_cotadas=cotadas, caixa_disponivel=caixa, capital_inicial=total)
-
 @app.route('/salvar_requisicao', methods=['POST'])
 def salvar_requisicao():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -399,7 +369,6 @@ def cotar_internet(id):
         conn.commit()
     conn.close()
     return redirect(url_for('requisicoes'))
-
 @app.route('/efetivar_compra/<int:id>', methods=['POST'])
 def efetivar_compra(id):
     if not session.get('logado'): return redirect(url_for('index'))
@@ -424,7 +393,6 @@ def efetivar_compra(id):
         conn.commit()
     conn.close()
     return redirect(url_for('requisicoes'))
-
 @app.route('/deletar_requisicao/<int:id>', methods=['POST'])
 def deletar_requisicao(id):
     if not session.get('logado'): return redirect(url_for('index'))
@@ -443,7 +411,6 @@ def salvar_produto():
         conn.close()
     except sqlite3.IntegrityError: return "Erro: Produto duplicado."
     return redirect(url_for('engenharia'))
-
 @app.route('/vincular_estrutura', methods=['POST'])
 def vincular_estrutura():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -454,7 +421,6 @@ def vincular_estrutura():
     conn.commit()
     conn.close()
     return redirect(url_for('engenharia'))
-
 @app.route('/deletar_item_estrutura/<int:id>', methods=['POST'])
 def deletar_item_estrutura(id):
     if not session.get('logado'): return redirect(url_for('index'))
@@ -463,7 +429,6 @@ def deletar_item_estrutura(id):
     conn.commit()
     conn.close()
     return redirect(url_for('engenharia'))
-
 @app.route('/precificacao')
 def precificacao():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -473,7 +438,6 @@ def precificacao():
     caixa, total = calcular_caixa_disponivel(conn)
     conn.close()
     return render_template('precificacao.html', produtos=prods, precos_salvos=salvos, caixa_disponivel=caixa, capital_inicial=total)
-
 @app.route('/salvar_preco', methods=['POST'])
 def salvar_preco():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -482,7 +446,6 @@ def salvar_preco():
     conn.commit()
     conn.close()
     return redirect(url_for('precificacao'))
-
 @app.route('/vendas')
 def vendas():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -501,7 +464,6 @@ def estoque():
     caixa, total = calcular_caixa_disponivel(conn)
     conn.close()
     return render_template('estoque.html', estoque_itens=itens, pedidos=peds, caixa_disponivel=caixa, capital_inicial=total)
-
 @app.route('/lancar_venda', methods=['POST'])
 def lancar_venda():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -518,7 +480,6 @@ def lancar_venda():
     conn.commit()
     conn.close()
     return redirect(url_for('vendas'))
-
 @app.route('/deletar_venda/<int:id>', methods=['POST'])
 def deletar_venda(id):
     if not session.get('logado'): return redirect(url_for('index'))
@@ -527,7 +488,6 @@ def deletar_venda(id):
     conn.commit()
     conn.close()
     return redirect(url_for('vendas'))
-
 @app.route('/pcp')
 def pcp():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -536,7 +496,6 @@ def pcp():
     caixa, total = calcular_caixa_disponivel(conn)
     conn.close()
     return render_template('pcp.html', ordens=ords, caixa_disponivel=caixa, capital_inicial=total)
-
 @app.route('/solicitar_producao_pcp/<int:pedido_id>', methods=['POST'])
 def solicitar_producao_pcp(pedido_id):
     if not session.get('logado'): return redirect(url_for('index'))
@@ -561,7 +520,6 @@ def solicitar_producao_pcp(pedido_id):
         flash('Ordem de Produção transmitida com sucesso para o painel do PCP!', 'success')
     conn.close()
     return redirect(url_for('estoque'))
-
 @app.route('/abastecer_estoque_pcp', methods=['POST'])
 def abastecer_estoque_pcp():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -584,6 +542,7 @@ def abastecer_estoque_pcp():
     flash('Recebimento efetuado e integrado com sucesso ao estoque disponível.', 'success')
     return redirect(url_for('estoque'))
     @app.route('/dar_baixa_op/<int:id>', methods=['POST'])
+@app.route('/dar_baixa_op/<int:id>', methods=['POST'])
 def dar_baixa_op(id):
     if not session.get('logado'): return redirect(url_for('index'))
     conn = get_db_connection()
@@ -591,7 +550,6 @@ def dar_baixa_op(id):
     conn.commit()
     conn.close()
     return redirect(url_for('pcp'))
-
 @app.route('/imprimir_nf/<int:pedido_id>')
 def imprimir_nf(pedido_id):
     if not session.get('logado'): return redirect(url_for('index'))
@@ -606,7 +564,6 @@ def imprimir_nf(pedido_id):
     v_est = liq * (ped['imposto_estadual'] / 100.0)
     v_fed = liq * (ped['imposto_federal'] / 100.0)
     return render_template('nota_fiscal.html', p=ped, subtotal=sub, v_desconto=v_desc, total_liquido=liq, v_municipal=v_mun, v_estadual=v_est, v_federal=v_fed, total_impostos=v_mun+v_est+v_fed)
-
 @app.route('/financeiro')
 def financeiro():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -618,14 +575,12 @@ def financeiro():
     conn.close()
     total_encargos = impostos_vendas + (despesa_pessoal_bruta * 0.20)
     return render_template('financeiro.html', faturamento=faturamento_bruto, custo_pessoal=despesa_pessoal_bruta, impostos=total_encargos, saldo_liquido=caixa, caixa_disponivel=caixa, capital_inicial=total)
-
 @app.route('/pagar_dividendos', methods=['POST'])
 def pagar_dividendos():
     if not session.get('logado'): return redirect(url_for('index'))
     percentual = float(request.form.get('percentual_lucro' or 25))
     flash(f'Distribuição de {percentual}% dos dividendos processada!', 'success')
     return redirect(url_for('financeiro'))
-
 @app.route('/roi')
 def roi():
     if not session.get('logado'): return redirect(url_for('index'))
