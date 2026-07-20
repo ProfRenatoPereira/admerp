@@ -2,12 +2,12 @@
 
 Site de aprendizagem.
 
-Simulador ERP, instrumento didático-pedagógico.
+# Simulador ERP, instrumento didático-pedagógico.
 
-Modulo funcional: https://admerpcadastro.onrender.com/
+Modulo funcional hospedado em: render.com.
 
 Tecnologias e plataformas: github, render e supabase.
 
-© Copyright Física Renato Pereira ®ψΣ.
+# © Copyright Física Renato Pereira ®ψΣ.
 
 Ed. 00-10/2004. Rev. 05-07/2026.
