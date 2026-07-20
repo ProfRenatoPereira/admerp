@@ -12,5 +12,5 @@ Tecnologias e plataformas: github, render e supabase.
 
 Ed. 00-10/2004. Rev. 05-07/2026.
 
-<img src="static/admerp.gif" width="500">
+<img width="1000" height="918" alt="admerp" src="https://github.com/user-attachments/assets/b02c3fe4-6e70-4675-9576-830ad48cd922" />
 
