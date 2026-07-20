@@ -1,8 +1,6 @@
 # admerp - Simulador ERP, instrumento didático-pedagógico.
 
-Site de aprendizagem. Módulo funcional hospedado em: render.com.
-
-Tecnologias e plataformas: github, render e supabase.
+Site de aprendizagem. Módulo funcional hospedado em: render.com. Tecnologias e plataformas: github, render e supabase.
 
 # © Copyright Física Renato Pereira ®ψΣ.
 
