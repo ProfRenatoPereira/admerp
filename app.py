@@ -117,17 +117,27 @@ def calcular_caixa_disponivel(conn):
         if row is None: return 0.0
         return float(row[chave] if hasattr(row, 'keys') or isinstance(row, dict) else row[indice])
 
-    ult_imovel = conn.execute('SELECT capital_inicial_negocio, aluguel_regional FROM investimentos_imobiliarios ORDER BY id DESC LIMIT 1').fetchone()
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT capital_inicial_negocio, aluguel_regional FROM investimentos_imobiliarios ORDER BY id DESC LIMIT 1')
+    ult_imovel = cursor.fetchone()
     if not ult_imovel: 
         return 0.0, 0.0
     
     capital_inicial = valor_campo(ult_imovel, 'capital_inicial_negocio', 0)
     aluguel_fixo = valor_campo(ult_imovel, 'aluguel_regional', 1)
     
-    investido_maquinas = valor_campo(conn.execute('SELECT COALESCE(SUM(preco_compra), 0) FROM maquinas').fetchone(), 0, 0)
-    comprado_materials = valor_campo(conn.execute('SELECT COALESCE(SUM(preco_unidade * volume_disponivel), 0) FROM materiais').fetchone(), 0, 0)
-    faturamento = valor_campo(conn.execute('SELECT COALESCE(SUM(fp.preco_venda_final * pv.quantidade), 0) FROM pedidos_vendas pv JOIN formacao_precos fp ON pv.produto_id = fp.produto_id').fetchone(), 0, 0)
-    folha_rh = valor_campo(conn.execute("SELECT COALESCE(SUM(salario_base + valor_adicionais), 0) FROM maquinas WHERE operador_nome != 'Posto Vago - Aguardando MOD' AND operador_nome != ''").fetchone(), 0, 0)
+    cursor.execute('SELECT COALESCE(SUM(preco_compra), 0) FROM maquinas')
+    investido_maquinas = valor_campo(cursor.fetchone(), 0, 0)
+
+    cursor.execute('SELECT COALESCE(SUM(preco_unidade * volume_disponivel), 0) FROM materiais')
+    comprado_materials = valor_campo(cursor.fetchone(), 0, 0)
+
+    cursor.execute('SELECT COALESCE(SUM(fp.preco_venda_final * pv.quantidade), 0) FROM pedidos_vendas pv JOIN formacao_precos fp ON pv.produto_id = fp.produto_id')
+    faturamento = valor_campo(cursor.fetchone(), 0, 0)
+
+    cursor.execute("SELECT COALESCE(SUM(salario_base + valor_adicionais), 0) FROM maquinas WHERE operador_nome != 'Posto Vago - Aguardando MOD' AND operador_nome != ''")
+    folha_rh = valor_campo(cursor.fetchone(), 0, 0)
     
     caixa_atual = capital_inicial - investido_maquinas - comprado_materials + faturamento - folha_rh - aluguel_fixo
     return caixa_atual, capital_inicial
