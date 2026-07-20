@@ -822,9 +822,16 @@ def financeiro():
             return float(row[list(row.keys())[0]])
         return float(row[indice])
 
-    faturamento_bruto = valor_campo(conn.execute('SELECT COALESCE(SUM(fp.preco_venda_final * pv.quantidade), 0) FROM pedidos_vendas pv JOIN formacao_precos fp ON pv.produto_id = fp.produto_id').fetchone())
-    despesa_pessoal_bruta = valor_campo(conn.execute("SELECT COALESCE(SUM(salario_base + valor_adicionais), 0) FROM maquinas WHERE operador_nome != 'Posto Vago - Aguardando MOD' AND operador_nome != ''").fetchone())
-    impostos_vendas = valor_campo(conn.execute('SELECT COALESCE(SUM((fp.preco_venda_final * pv.quantidade) * ((fp.imposto_municipal + fp.imposto_estadual + fp.imposto_federal) / 100.0)), 0) FROM pedidos_vendas pv JOIN formacao_precos fp ON pv.produto_id = fp.produto_id').fetchone())
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT COALESCE(SUM(fp.preco_venda_final * pv.quantidade), 0) FROM pedidos_vendas pv JOIN formacao_precos fp ON pv.produto_id = fp.produto_id')
+    faturamento_bruto = valor_campo(cursor.fetchone())
+
+    cursor.execute("SELECT COALESCE(SUM(salario_base + valor_adicionais), 0) FROM maquinas WHERE operador_nome != 'Posto Vago - Aguardando MOD' AND operador_nome != ''")
+    despesa_pessoal_bruta = valor_campo(cursor.fetchone())
+
+    cursor.execute('SELECT COALESCE(SUM((fp.preco_venda_final * pv.quantidade) * ((fp.imposto_municipal + fp.imposto_estadual + fp.imposto_federal) / 100.0)), 0) FROM pedidos_vendas pv JOIN formacao_precos fp ON pv.produto_id = fp.produto_id')
+    impostos_vendas = valor_campo(cursor.fetchone())
     
     caixa, total = calcular_caixa_disponivel(conn)
     conn.close()
