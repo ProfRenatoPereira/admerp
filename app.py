@@ -656,7 +656,7 @@ def alterar_material(id):
     param = "%s" if is_postgres else "?"
     
     cursor = conn.cursor()
-    cursor.execute(f'UPDATE materiais SET codigo_material={param}, nome_material={param}, preco_unidade={param}, dimensoes={param}, volume_disponivel={param} WHERE id={param}', (request.form.get('codigo_material', 'SKU').strip(), request.form.get('nome_material', 'Insumo').strip(), float(request.form.get('preco_unidade') or 0), request.form.get('dimensoes', 'N/A'), float(request.form.get('volume_disponivel) or 0), id))
+    cursor.execute(f'UPDATE materiais SET codigo_material={param}, nome_material={param}, preco_unidade={param}, dimensoes={param}, volume_disponivel={param} WHERE id={param}', (request.form.get('codigo_material', 'SKU').strip(), request.form.get('nome_material', 'Insumo').strip(), float(request.form.get('preco_unidade') or 0), request.form.get('dimensoes', 'N/A'), float(request.form.get('volume_disponivel') or 0), id))
     conn.commit()
     conn.close()
     return redirect(url_for('materiais'))
