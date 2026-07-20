@@ -11,3 +11,6 @@ Tecnologias e plataformas: github, render e supabase.
 # © Copyright Física Renato Pereira ®ψΣ.
 
 Ed. 00-10/2004. Rev. 05-07/2026.
+
+<img src="static/admerp.gif" width="500">
+
