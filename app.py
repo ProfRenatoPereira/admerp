@@ -76,7 +76,7 @@ def init_db():
     cursor.execute(f'CREATE TABLE IF NOT EXISTS pedidos_vendas (id {pk_auto}, produto_id INTEGER NOT NULL, quantidade INTEGER NOT NULL, desconto_percentual {real_type} DEFAULT 0, observacoes {text_type}, data_pedido {ts_default}, FOREIGN KEY(produto_id) REFERENCES produtos(id))')
     cursor.execute(f'CREATE TABLE IF NOT EXISTS ordens_processo (id {pk_auto}, pedido_id INTEGER NOT NULL, numero_operacao {text_type} NOT NULL, maquina_name {text_type} NOT NULL, codigo_produto {text_type} NOT NULL, nome_produto {text_type} NOT NULL, data_entrada {text_type} NOT NULL, tempo_estimado_min {real_type} NOT NULL, data_saida {text_type} NOT NULL, operador_nome {text_type} DEFAULT \'Pendente\', status {text_type} DEFAULT \'Na Fila\', custo_operacao {real_type} DEFAULT 0.0, FOREIGN KEY(pedido_id) REFERENCES pedidos_vendas(id))')
     conn.commit()
-     # Adaptação para leitura de contagem tanto no SQLite quanto no PostgreSQL
+    # Adaptação para leitura de contagem tanto no SQLite quanto no PostgreSQL
     cursor.execute('SELECT COUNT(*) AS total FROM investimentos_imobiliarios')
     row = cursor.fetchone()
     total_registros = row[0] if isinstance(row, tuple) else row['total']
@@ -111,8 +111,6 @@ def init_db():
 
 # Executa a inicialização de tabelas e injeção do cenário
 init_db()
-if not os.path.exists(DATABASE):
-    init_db()
 def calcular_caixa_disponivel(conn):
     # Trata de forma unificada o formato das tuplas retornadas no SQLite e no PostgreSQL
     def valor_campo(row, chave, indice=0):
@@ -278,7 +276,6 @@ def deletar_estrutura(id):
     conn.commit()
     conn.close()
     return redirect(url_for('estrutura'))
-
 @app.route('/maquinas')
 def maquinas():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -319,7 +316,6 @@ def salvar_maquina():
     conn.commit()
     conn.close()
     return redirect(url_for('maquinas'))
-
 @app.route('/alterar_maquina/<int:id>', methods=['POST'])
 def alterar_maquina(id):
     if not session.get('logado'): return redirect(url_for('index'))
@@ -464,7 +460,6 @@ def salvar_requisicao():
     conn.commit()
     conn.close()
     return redirect(url_for('requisicoes'))
-
 @app.route('/cotar_internet/<int:id>', methods=['POST'])
 def cotar_internet(id):
     if not session.get('logado'): return redirect(url_for('index'))
@@ -625,7 +620,6 @@ def deletar_item_estrutura(id):
     conn.commit()
     conn.close()
     return redirect(url_for('engenharia'))
-
 @app.route('/precificacao')
 def precificacao():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -665,7 +659,6 @@ def vendas():
     caixa, total = calcular_caixa_disponivel(conn)
     conn.close()
     return render_template('vendas.html', produtos=prods, pedidos=peds, caixa_disponivel=caixa, capital_inicial=total)
-
 @app.route('/estoque')
 def estoque():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -708,7 +701,6 @@ def deletar_venda(id):
     conn.commit()
     conn.close()
     return redirect(url_for('vendas'))
-
 @app.route('/pcp')
 def pcp():
     if not session.get('logado'): return redirect(url_for('index'))
@@ -784,7 +776,6 @@ def dar_baixa_op(id):
     conn.commit()
     conn.close()
     return redirect(url_for('pcp'))
-
 @app.route('/imprimir_nf/<int:pedido_id>')
 def imprimir_nf(pedido_id):
     if not session.get('logado'): return redirect(url_for('index'))
